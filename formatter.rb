@@ -1,36 +1,28 @@
 class Formatter
 
-  TIME_FORMATS = { "year"   => "%Y-",
-                   "month"  => "%m-",
-                   "day"    => "%d ",
-                   "hour"   => "%Hh ",
-                   "minute" => "%Mm ",
+  TIME_FORMATS = { "year"   => "%Y",
+                   "month"  => "%m",
+                   "day"    => "%d",
+                   "hour"   => "%Hh",
+                   "minute" => "%Mm",
                    "second" => "%Ss" }.freeze
 
-  attr_accessor :status, :body
+  attr_reader :incorrect
 
   def initialize(params)
-    @correct = ''
-    @incorrect = []
-    time_response(params['format'].split(','))
-    response
+    @params = params['format'].split(',')
   end
 
-  private
-
-  def response
-    if @incorrect.empty?
-      self.status = 200
-      self.body = Time.now.strftime(@correct)
-    else
-      self.status = 400
-      self.body = "Unknown time format #{@incorrect}"
-    end
+  def check_format
+    @correct, @incorrect = @params.partition { |format| TIME_FORMATS[format] }
   end
 
-  def time_response(params)
-    params.each do |format|
-      TIME_FORMATS[format] ? @correct += TIME_FORMATS[format] : @incorrect << format
-    end
+  def success?
+    @incorrect.empty?
+  end
+
+  def time
+    formats = @correct.map { |format| TIME_FORMATS[format]}
+    Time.now.strftime(formats.join('-'))
   end
 end
